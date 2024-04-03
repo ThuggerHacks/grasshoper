@@ -1,4 +1,4 @@
-![Grasshopper Logo](https://cdn.icon-icons.com/icons2/2699/PNG/512/grasshopper_logo_icon_169067.png)
+![Grasshopper Logo](https://cdn.icon-icons.com/icons2/2699/PNG/512/grasshopper_logo_icon_169067.png){:height="100px" width="100px"}
 # GRASSHOPPER
 
 This project calculates the percentage of coordinates inside a specific object.
