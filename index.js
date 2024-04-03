@@ -1,4 +1,5 @@
 (() => {
+    const imageURL = "src/20240403_104553.jpg";
     let app, image;
     let firstPress = false;
     let isMoving = true;
@@ -40,7 +41,7 @@
         }
 
         p.preload = () => {
-            image = p.loadImage('src/20240403_104553.jpg');
+            image = p.loadImage(ImageURL);
         }
 
         p.setup = () => {
