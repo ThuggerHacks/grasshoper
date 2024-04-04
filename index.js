@@ -1,5 +1,6 @@
 (() => {
-    const imageURL = "src/20240403_101217.jpg";
+    const imageURL = "src/20240403_104553.jpg";
+    let label = "";
     let result = {} // Variable to store the result of the image processing
     let lbcount = 0;
     let app, image;
@@ -35,6 +36,7 @@
 
         // Function to create an overlay canvas
         const createOverlayCanvas = (parent) => {
+            // Create the overlay canvas with the same size as the parent element 
             let overlay = document.createElement('canvas');
             overlay.width = parent.offsetWidth;
             overlay.height = parent.offsetHeight;
@@ -45,18 +47,21 @@
             return overlay.getContext('2d');
         }
 
+        // Preload function to load the image before the setup function is called
         p.preload = () => {
             image = p.loadImage(imageURL);
         }
 
+        // Setup function to create the canvas and the overlay canvas 
         p.setup = () => {
+            // Create the canvas with the same size as the image
             p.createCanvas(image.width, image.height);
             p.background(0);
             createImage();
             overlayCanvas = createOverlayCanvas(app); // Create the overlay canvas
         }
 
-        p.draw = () => {}
+        p.draw = () => { }
 
         p.mouseMoved = () => {
             if (isMoving && showRuller && !verticallRuller) {
@@ -69,7 +74,7 @@
                 overlayCanvas.stroke();
             }
 
-            if(isMoving && verticallRuller && showRuller) {
+            if (isMoving && verticallRuller && showRuller) {
                 overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 overlayCanvas.strokeStyle = 'rgba(255, 255, 50, 0.5)'; // Set the color with opacity for the ruler lines
                 overlayCanvas.lineWidth = 30;
@@ -87,7 +92,6 @@
                 px = p.mouseX;
                 py = p.mouseY;
             } else {
-                const label = `line_${lbcount++}`;
                 // Draw line between two points if mouse is pressed again and calculate distance between the points 
                 x = p.mouseX;
                 y = p.mouseY;
@@ -103,12 +107,13 @@
                     p.fill(255);
                     p.textSize(60);
                     p.text(`Total Distance: ${distance.toFixed(2)} = 100%, x1 = ${px}, y1 = ${py}, x2 = ${x}, y2 = ${y}`, 0, p.height - 20);
+                    // Store the first points and the second points in the x and y axis
                     fx = px;
                     fy = py;
                     fx2 = x;
                     fy2 = y;
 
-                }else if(firstDistanceY === 0) {
+                } else if (firstDistanceY === 0) {
                     firstDistanceY = distance;
                     // Calculate the distance between the points
                     p.fill(255);
@@ -121,32 +126,44 @@
                 } else {
                     // Calculate the distance between the points  and the percentage of the distance compared to the first distance
                     let percentage = (distance / firstDistanceY) * 100;
-                    p.text(`Distance: ${distance.toFixed(2)} = ${percentage.toFixed(2)}%, x1 = ${calculatePercentage(fx,fx2,px)}%, y1 = ${calculatePercentageY(fvy,fvy2,py)}%, x2 = ${calculatePercentage(fx,fx2,x)}%, y2 = ${calculatePercentageY(fvy,fvy2,y)}%`, 0, p.height - i);
+                    p.text(`Distance: ${distance.toFixed(2)} = ${percentage.toFixed(2)}%, x1 = ${calculatePercentage(fx, fx2, px)}%, y1 = ${calculatePercentageY(fvy, fvy2, py)}%, x2 = ${calculatePercentage(fx, fx2, x)}%, y2 = ${calculatePercentageY(fvy, fvy2, y)}%`, 0, p.height - i);
                 }
 
-                result = {...result, [label]: {
-                    x1: calculatePercentage(fx, fx2, px),
-                    y1: calculatePercentageY(fvy, fvy2, py),
-                    x2: calculatePercentage(fx, fx2, x),
-                    y2: calculatePercentageY(fvy, fvy2, y),
-                }};
+                // Store the result in the result object 
+                result = {
+                    ...result,
+                    [label]: {
+                        x1: calculatePercentage(fx, fx2, px),
+                        y1: calculatePercentageY(fvy, fvy2, py),
+                        x2: calculatePercentage(fx, fx2, x),
+                        y2: calculatePercentageY(fvy, fvy2, y),
+                    }
+                };
 
                 isMoving = true;
                 firstPress = false;
                 i += 90;
-
+                // debug the result objectS
                 console.log(result)
             }
         }
 
         // Reset values when delete key is pressed
         p.keyPressed = () => {
+            // Clear the canvas and reset the values when delete key is pressed
+
+            // Check if the key is between A and Z or a and z
+            if ((p.key >= 'A' && p.key <= 'Z') || (p.key >= 'a' && p.key <= 'z')) {
+                label += p.key;
+            }
+
             if (p.key == 'Delete') {
                 p.background(0);
                 createImage();
                 resetValues();
             }
 
+            // Draw the horizontal ruler when enter key is pressed
             if (p.key == 'Enter' && !verticallRuller) {
                 overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 overlayCanvas.strokeStyle = 'rgba(255, 255, 50, 0.5)'; // Set the color with opacity for the ruler lines
@@ -156,9 +173,12 @@
                 overlayCanvas.lineTo(p.width, p.mouseY);
                 overlayCanvas.stroke();
                 isMoving = false;
+                label = "";
+                return;
             }
 
-            if(p.key == 'Enter' && verticallRuller) {
+            // Draw the vertical ruler when enter key is pressed 
+            if (p.key == 'Enter' && verticallRuller) {
                 overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 overlayCanvas.strokeStyle = 'rgba(255, 255, 50, 0.5)'; // Set the color with opacity for the ruler lines
                 overlayCanvas.lineWidth = 30;
@@ -167,32 +187,44 @@
                 overlayCanvas.lineTo(p.mouseX, p.height);
                 overlayCanvas.stroke();
                 isMoving = false;
+                label = "";
+                return;
             }
 
-            if(p.key == 'r') {
+            // Show or hide the horizontal ruler when F2 key is pressed
+            if (p.key == 'F2') {
                 showRuller = !showRuller;
-                if(!showRuller) {
+                if (!showRuller) {
                     overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 }
+
+                return;
             }
 
-            if(p.key == 'v') {
+            // Show or hide the vertical ruler when Shift key is pressed
+            if (p.key == 'Shift') {
                 verticallRuller = !verticallRuller;
-                if(verticallRuller) {
+                if (verticallRuller) {
                     overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 }
+                return;
             }
 
-            if(p.key == 's') {
+            // Save the result object in a json file when Backspace  key is pressed
+            if (p.key == 'Backspace') {
                 p.saveJSON(result, 'result.json');
+                return;
             }
+
         }
     }
 
+    // Function to calculate the percentage of the distance between the points in the x axis
     const calculatePercentage = (x1, x2, x3) => {
         return (((x3 - x1) / (x2 - x1)) * 100).toFixed(2);
     };
 
+    // Function to calculate the percentage of the distance between the points in the y axis
     const calculatePercentageY = (y1, y2, y3) => {
         return (((y3 - y1) / (y2 - y1)) * 100).toFixed(2);
     };
