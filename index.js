@@ -1,10 +1,15 @@
 (() => {
-    const imageURL = "src/20240403_104553.jpg";
+    const imageURL = "src/20240403_101217.jpg";
+    let result = {} // Variable to store the result of the image processing
+    let lbcount = 0;
     let app, image;
     let firstPress = false;
+    let verticallRuller = false;
     let isMoving = true;
     let firstDistance = 0;
+    let firstDistanceY = 0;
     let fx = fy = fx2 = fy2 = 0;
+    let fvx = fvy = fvx2 = fvy2 = 0;
     let x = y = px = py = 0;
     let showRuller = true;
     let i = 190;
@@ -41,7 +46,7 @@
         }
 
         p.preload = () => {
-            image = p.loadImage(ImageURL);
+            image = p.loadImage(imageURL);
         }
 
         p.setup = () => {
@@ -54,13 +59,23 @@
         p.draw = () => {}
 
         p.mouseMoved = () => {
-            if (isMoving && showRuller) {
+            if (isMoving && showRuller && !verticallRuller) {
                 overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 overlayCanvas.strokeStyle = 'rgba(255, 255, 50, 0.5)'; // Set the color with opacity for the ruler lines
                 overlayCanvas.lineWidth = 30;
                 overlayCanvas.beginPath();
                 overlayCanvas.moveTo(0, p.mouseY);
                 overlayCanvas.lineTo(p.width, p.mouseY);
+                overlayCanvas.stroke();
+            }
+
+            if(isMoving && verticallRuller && showRuller) {
+                overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
+                overlayCanvas.strokeStyle = 'rgba(255, 255, 50, 0.5)'; // Set the color with opacity for the ruler lines
+                overlayCanvas.lineWidth = 30;
+                overlayCanvas.beginPath();
+                overlayCanvas.moveTo(p.mouseX, 0);
+                overlayCanvas.lineTo(p.mouseX, p.height);
                 overlayCanvas.stroke();
             }
         }
@@ -72,6 +87,7 @@
                 px = p.mouseX;
                 py = p.mouseY;
             } else {
+                const label = `line_${lbcount++}`;
                 // Draw line between two points if mouse is pressed again and calculate distance between the points 
                 x = p.mouseX;
                 y = p.mouseY;
@@ -92,14 +108,34 @@
                     fx2 = x;
                     fy2 = y;
 
+                }else if(firstDistanceY === 0) {
+                    firstDistanceY = distance;
+                    // Calculate the distance between the points
+                    p.fill(255);
+                    p.textSize(60);
+                    p.text(`Total Distance: ${distance.toFixed(2)} = 100%, x1 = ${px}, y1 = ${py}, x2 = ${x}, y2 = ${y}`, 0, p.height - i);
+                    fvx = px;
+                    fvy = py;
+                    fvx2 = x;
+                    fvy2 = y;
                 } else {
                     // Calculate the distance between the points  and the percentage of the distance compared to the first distance
-                    let percentage = (distance / firstDistance) * 100;
-                    p.text(`Distance: ${distance.toFixed(2)} = ${percentage.toFixed(2)}%, x1 = ${calculatePercentage(fx,fy,fx2,fy2,px)}%, y1 = ${calculatePercentageY(fx,fy,fx2,fy2,py)}%, x2 = ${calculatePercentage(fx,fy,fx2,fy2,x)}%, y2 = ${calculatePercentageY(fx,fy,fx2,fy2,y)}%`, 0, p.height - i);
+                    let percentage = (distance / firstDistanceY) * 100;
+                    p.text(`Distance: ${distance.toFixed(2)} = ${percentage.toFixed(2)}%, x1 = ${calculatePercentage(fx,fx2,px)}%, y1 = ${calculatePercentageY(fvy,fvy2,py)}%, x2 = ${calculatePercentage(fx,fx2,x)}%, y2 = ${calculatePercentageY(fvy,fvy2,y)}%`, 0, p.height - i);
                 }
+
+                result = {...result, [label]: {
+                    x1: calculatePercentage(fx, fx2, px),
+                    y1: calculatePercentageY(fvy, fvy2, py),
+                    x2: calculatePercentage(fx, fx2, x),
+                    y2: calculatePercentageY(fvy, fvy2, y),
+                }};
+
                 isMoving = true;
                 firstPress = false;
                 i += 90;
+
+                console.log(result)
             }
         }
 
@@ -111,7 +147,7 @@
                 resetValues();
             }
 
-            if (p.key == 'Enter') {
+            if (p.key == 'Enter' && !verticallRuller) {
                 overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 overlayCanvas.strokeStyle = 'rgba(255, 255, 50, 0.5)'; // Set the color with opacity for the ruler lines
                 overlayCanvas.lineWidth = 30;
@@ -122,27 +158,39 @@
                 isMoving = false;
             }
 
+            if(p.key == 'Enter' && verticallRuller) {
+                overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
+                overlayCanvas.strokeStyle = 'rgba(255, 255, 50, 0.5)'; // Set the color with opacity for the ruler lines
+                overlayCanvas.lineWidth = 30;
+                overlayCanvas.beginPath();
+                overlayCanvas.moveTo(p.mouseX, 0);
+                overlayCanvas.lineTo(p.mouseX, p.height);
+                overlayCanvas.stroke();
+                isMoving = false;
+            }
+
             if(p.key == 'r') {
                 showRuller = !showRuller;
                 if(!showRuller) {
                     overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 }
             }
+
+            if(p.key == 'v') {
+                verticallRuller = !verticallRuller;
+                if(verticallRuller) {
+                    overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
+                }
+            }
         }
     }
 
-    const calculatePercentage = (x1, y1, x2, y2, x3) => {
-        const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        const distanceToX3 = Math.abs(x3 - x1);
-        const percentage = (distanceToX3 / distance) * 100;
-        return percentage.toFixed(2);
+    const calculatePercentage = (x1, x2, x3) => {
+        return (((x3 - x1) / (x2 - x1)) * 100).toFixed(2);
     };
 
-    const calculatePercentageY = (x1, y1, x2, y2, y3) => {
-        const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        const distanceToY3 = Math.abs(y3 - y1);
-        const percentage = (distanceToY3 / distance) * 100;
-        return percentage.toFixed(2);
+    const calculatePercentageY = (y1, y2, y3) => {
+        return (((y3 - y1) / (y2 - y1)) * 100).toFixed(2);
     };
 
 })();
