@@ -30,12 +30,13 @@ To use the project, follow these steps:
 4. Press 'Delete' to clear the drawings
 5. Press 'Enter' when the ruler is placed in a good position
 6. Click the starting x,y position and the ending x,y position in order to have a line drawn at this positions and at the bottom of the canvas there will be the results.
+7. Click 's' to save the json result as a file in your computer
+8. Click 'v' to switch the ruller direction (horizontal, vertical)
 
 ## Notes
 1. The first measurement that you take will be considered as the main and will be used as the reference for the upcoming measurement.
 2. If you want to reset the main reference, just press 'Delete'
 
-## Demos
 ## Demos
 
 Here are some demos of the project in action:

@@ -182,6 +182,10 @@
                     overlayCanvas.clearRect(0, 0, overlayCanvas.canvas.width, overlayCanvas.canvas.height); // Clear the overlay canvas
                 }
             }
+
+            if(p.key == 's') {
+                p.saveJSON(result, 'result.json');
+            }
         }
     }
 
